@@ -1,21 +1,56 @@
 
 const express = require("express");
+const {adminAuth, userAuth} = require("./middlewares/auth");
 
 const app = express(); // start the server
+//Middleware 
+app.use("/admin" , adminAuth );
 
-app.use("/user", [(req,res,next) => {
-    console.log("Route Handler 1");
-    next(); // This is go to next route handler, We need to send a response back to client or else we will get a infinte loop.
-    // res.send("route handler 1");
-    // we cannot mention two send response in the route handler as the connection will be closed once the client gets the reponse this will cause to get a error in other response that is trying to send.
-
-}, (req, res, next) => {
-    console.log("Route Handler 2");
-    next();
-}], (req, res, next) => {
-    console.log("Route Handler 3");
-    res.send("Route handler 3");
+app.get("/admin/getAllData" , (req, res) => {
+    res.send("Got all Data");
 });
+app.get("/user/data" , userAuth, (req, res, next) => {
+         res.send(" User Data");
+     });
+
+
+
+app.listen(7777, () => {
+    console.log("Server is started");
+});
+
+
+
+
+
+/// Notes 
+//Here we are writing the route handlers seperately hence express will go one by one the second route will get called because of next() function.
+// app.get("/user" , (req, res, next) => {
+//     console.log("Route Handler 1");
+//      next();
+// });
+// app.get("/user" , (req, res, next) =>{
+//     console.log("Route Handler 1");
+//     res.send(" 2nd Route handler");
+// });
+
+
+
+// app.use("/user", [(req,res,next) => {
+//     console.log("Route Handler 1");
+//     next(); // This is go to next route handler, We need to send a response back to client or else we will get a infinte loop.
+//     // res.send("route handler 1");
+//     // we cannot mention two send response in the route handler as the connection will be closed once the client gets the reponse this will cause to get a error in other response that is trying to send.
+
+// }, (req, res, next) => {
+//     console.log("Route Handler 2");
+//     next();
+// }], (req, res, next) => {
+//     console.log("Route Handler 3");
+//     res.send("Route handler 3");
+// });
+
+
 
 // //This will only handles GET calls to /user
 // app.get("/user", (req,res) =>{
@@ -38,8 +73,3 @@ app.use("/user", [(req,res,next) => {
 // app.use("/", (req,res) => {
 //     res.send("Hello om Test");
 // });
-
-
-app.listen(7777, () => {
-    console.log("Server is started");
-});
