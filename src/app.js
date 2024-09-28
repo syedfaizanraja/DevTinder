@@ -3,6 +3,7 @@ const express = require("express");
 const {adminAuth, userAuth} = require("./middlewares/auth");
 
 const app = express(); // start the server
+
 //Middleware 
 app.use("/admin" , adminAuth );
 
@@ -13,7 +14,13 @@ app.get("/user/data" , userAuth, (req, res, next) => {
          res.send(" User Data");
      });
 
-
+// This is to handle the error in all the routes. Always write it towards the end
+app.use("/", (err, req, res, next) =>{
+    if(err){
+        // log the error
+        res.status(500).send("Something Went Wrong");
+    }
+});
 
 app.listen(7777, () => {
     console.log("Server is started");
