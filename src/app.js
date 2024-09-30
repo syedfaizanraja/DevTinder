@@ -1,30 +1,38 @@
 
 const express = require("express");
-const {adminAuth, userAuth} = require("./middlewares/auth");
+const connectDB = require("./config/database.js");
+const User = require("./models/user.js");
+
 
 const app = express(); // start the server
 
-//Middleware 
-app.use("/admin" , adminAuth );
-
-app.get("/admin/getAllData" , (req, res) => {
-    res.send("Got all Data");
-});
-app.get("/user/data" , userAuth, (req, res, next) => {
-         res.send(" User Data");
-     });
-
-// This is to handle the error in all the routes. Always write it towards the end
-app.use("/", (err, req, res, next) =>{
-    if(err){
-        // log the error
-        res.status(500).send("Something Went Wrong");
+app.post("/signup" , async (req, res) => {  
+    const userobj = {
+        firstName : "Faizan" ,
+        lastName  : "Raza"
     }
+    const user = new User(userobj);
+    try {
+        await user.save();
+        res.send("Data Stored Successfully");
+    }catch(err) {
+        res.status(400).send("Error Saving User");
+    }
+    
 });
 
-app.listen(7777, () => {
-    console.log("Server is started");
+connectDB().then( () => {
+    console.log("Connected to DB");
+    app.listen(7777, () => {
+        console.log("Server is started");
+    });
+}    
+).catch((err) => {
+    console.log(" Error in Db connection");
 });
+
+
+
 
 
 
@@ -80,3 +88,25 @@ app.listen(7777, () => {
 // app.use("/", (req,res) => {
 //     res.send("Hello om Test");
 // });
+
+
+
+// //Middleware 
+//const {adminAuth, userAuth} = require("./middlewares/auth");
+// app.use("/admin" , adminAuth );
+
+// app.get("/admin/getAllData" , (req, res) => {
+//     res.send("Got all Data");
+// });
+// app.get("/user/data" , userAuth, (req, res, next) => {
+//          res.send(" User Data");
+//      });
+
+// // This is to handle the error in all the routes. Always write it towards the end
+// app.use("/", (err, req, res, next) =>{
+//     if(err){
+//         // log the error
+//         res.status(500).send("Something Went Wrong");
+//     }
+// });
+
