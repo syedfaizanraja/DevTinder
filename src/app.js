@@ -6,12 +6,14 @@ const User = require("./models/user.js");
 
 const app = express(); // start the server
 
+app.use(express.json());
+
 app.post("/signup" , async (req, res) => {  
-    const userobj = {
-        firstName : "Faizan" ,
-        lastName  : "Raza"
-    }
-    const user = new User(userobj);
+    // const userobj = {
+    //     firstName : "Faizan" ,
+    //     lastName  : "Raza"
+    // }
+    const user = new User(req.body);
     try {
         await user.save();
         res.send("Data Stored Successfully");
