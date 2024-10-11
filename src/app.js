@@ -9,16 +9,59 @@ const app = express(); // start the server
 app.use(express.json());
 
 app.post("/signup" , async (req, res) => {  
-    // const userobj = {
-    //     firstName : "Faizan" ,
-    //     lastName  : "Raza"
-    // }
+
     const user = new User(req.body);
     try {
         await user.save();
         res.send("Data Stored Successfully");
     }catch(err) {
         res.status(400).send("Error Saving User");
+    }
+    
+});
+
+app.get("/user", async (req, res) => {
+    const userName = req.body.firstName;
+
+    try{
+       const users =  await User.find({ firstName : userName});
+        if(users.length === 0){
+            res.status(404).send(" User not Found");
+        }
+        else{
+            res.send(users);
+        }
+    }catch(err){
+        res.status(400).send("Something Went Wrong");
+    }
+});
+
+app.delete("/delete", async (req, res) =>{
+    const userId = req.body.userId;
+    try{
+        const user = await User.findByIdAndDelete(userId);
+        res.send("User Deleted Successfully");
+    }catch(err) {
+        res.status(400).send("Something Went Wrong");
+    }
+});
+
+app.patch("/user/:userId" , async (req,res) =>{
+    const userId = req.params?.userId;
+    const data = req.body;
+    try{
+        const ALLOWED_UPDATES = ["description", "skills","gender"];
+
+        const isAllowed_Updates = Object.keys(data).every((k) => 
+            ALLOWED_UPDATES.includes(k)
+         );
+        if(!isAllowed_Updates) {
+            throw new Error("Update now allowed");
+        }
+        const user = await User.findByIdAndUpdate(userId, data, {runValidators : true});
+        res.send("User updated Successfully");
+    }catch(err) {
+        res.status(400).send("Update Failed:"+err.message);
     }
     
 });

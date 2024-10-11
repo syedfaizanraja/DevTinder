@@ -1,5 +1,6 @@
 
 const mongoose = require("mongoose");
+const validator = require("validator");
 
 const userSchema = new mongoose.Schema({
     firstName : {
@@ -9,19 +10,39 @@ const userSchema = new mongoose.Schema({
         type: String
     },
     emailId : {
-        type: String
+        type: String,
+        required : true,
+        validate(value){
+            if(!validator.isEmail(value)){
+                throw new Error("Email Id is not valid - " +value);
+            }
+        },
     },
     password : {
-        type : String
+        type : String,
+       
     },
     age : {
-        type : Number
+        type : Number,
+        min: 18
     },
     gender : {
-        type : String
+        type : String,
+        validate(value){
+            if(!['male','female','others'].includes(value)){
+                throw new Error("Gender data is not valid");
+            }
+        }
+    },
+    description :{
+        type : String,
+        default : "This is a Default value"
+    },
+    skills : {
+        type : [String],
     }
 
-});
+}, {timestamps : true});
 
 const User = mongoose.model("User", userSchema);
 
