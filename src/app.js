@@ -2,22 +2,78 @@
 const express = require("express");
 const connectDB = require("./config/database.js");
 const User = require("./models/user.js");
+const bcrypt = require("bcrypt");
+const {validateSignUpData} = require("./utils/validate.js");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+const {userAuth} = require("./middlewares/auth.js");
 
 
 const app = express(); // start the server
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/signup" , async (req, res) => {  
 
-    const user = new User(req.body);
+    //Validate the data
+    validateSignUpData(req);
+    const { firstName, lastName, emailId, password} = req.body;
+    //Encrypt the password 
+    const encryptedPassword = await bcrypt.hash(password, 10);
+
+    const user = new User({
+        firstName , lastName, emailId, password: encryptedPassword
+    });
     try {
         await user.save();
         res.send("Data Stored Successfully");
     }catch(err) {
-        res.status(400).send("Error Saving User");
+        res.status(400).send("Error Saving User" +err.message);
     }
     
+});
+
+app.post("/login", async (req,res) => {
+
+    try{
+
+        const { emailId , password} = req.body;
+
+        const user = await User.findOne({emailId : emailId});
+
+        if(!user){
+            throw new Error("Invalid Credentials");
+        }
+
+        const isPasswordValid = await user.validatePassword(password);
+        if(isPasswordValid){
+
+            const token = await user.getJwt();
+            res.cookie("token", token);
+            res.send('Login Successfull');
+            
+        }
+        else{
+            throw new Error("Invalid Credentials");
+        }
+
+    }
+    catch(err) {
+        res.status(400).send("Error : " +err.message);
+    }
+
+});
+
+app.get("/profile", userAuth, async ( req, res) => {
+    try{
+        const user = req.user;
+       
+        res.send(user);
+    }
+    catch(err) {
+        res.status(400).send("Something Went Wrong : " +err.message);
+    }
 });
 
 app.get("/user", async (req, res) => {
@@ -36,35 +92,7 @@ app.get("/user", async (req, res) => {
     }
 });
 
-app.delete("/delete", async (req, res) =>{
-    const userId = req.body.userId;
-    try{
-        const user = await User.findByIdAndDelete(userId);
-        res.send("User Deleted Successfully");
-    }catch(err) {
-        res.status(400).send("Something Went Wrong");
-    }
-});
 
-app.patch("/user/:userId" , async (req,res) =>{
-    const userId = req.params?.userId;
-    const data = req.body;
-    try{
-        const ALLOWED_UPDATES = ["description", "skills","gender"];
-
-        const isAllowed_Updates = Object.keys(data).every((k) => 
-            ALLOWED_UPDATES.includes(k)
-         );
-        if(!isAllowed_Updates) {
-            throw new Error("Update now allowed");
-        }
-        const user = await User.findByIdAndUpdate(userId, data, {runValidators : true});
-        res.send("User updated Successfully");
-    }catch(err) {
-        res.status(400).send("Update Failed:"+err.message);
-    }
-    
-});
 
 connectDB().then( () => {
     console.log("Connected to DB");
@@ -153,5 +181,37 @@ connectDB().then( () => {
 //         // log the error
 //         res.status(500).send("Something Went Wrong");
 //     }
+// });
+
+
+
+// app.delete("/delete", async (req, res) =>{
+//     const userId = req.body.userId;
+//     try{
+//         const user = await User.findByIdAndDelete(userId);
+//         res.send("User Deleted Successfully");
+//     }catch(err) {
+//         res.status(400).send("Something Went Wrong : " +err.message);
+//     }
+// });
+
+// app.patch("/user/:userId" , async (req,res) =>{
+//     const userId = req.params?.userId;
+//     const data = req.body;
+//     try{
+//         const ALLOWED_UPDATES = ["description", "skills","gender"];
+
+//         const isAllowed_Updates = Object.keys(data).every((k) => 
+//             ALLOWED_UPDATES.includes(k)
+//          );
+//         if(!isAllowed_Updates) {
+//             throw new Error("Update now allowed");
+//         }
+//         const user = await User.findByIdAndUpdate(userId, data, {runValidators : true});
+//         res.send("User updated Successfully");
+//     }catch(err) {
+//         res.status(400).send("Update Failed :"+err.message);
+//     }
+    
 // });
 
