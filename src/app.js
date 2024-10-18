@@ -1,117 +1,35 @@
-
 const express = require("express");
 const connectDB = require("./config/database.js");
-const User = require("./models/user.js");
-const bcrypt = require("bcrypt");
-const {validateSignUpData} = require("./utils/validate.js");
+
 const cookieParser = require("cookie-parser");
-const jwt = require("jsonwebtoken");
-const {userAuth} = require("./middlewares/auth.js");
+
+const authRouter = require("./routes/auth.js");
+const profileRouter = require("./routes/profile.js");
+
 
 
 const app = express(); // start the server
-
 app.use(express.json());
 app.use(cookieParser());
 
-app.post("/signup" , async (req, res) => {  
-
-    //Validate the data
-    validateSignUpData(req);
-    const { firstName, lastName, emailId, password} = req.body;
-    //Encrypt the password 
-    const encryptedPassword = await bcrypt.hash(password, 10);
-
-    const user = new User({
-        firstName , lastName, emailId, password: encryptedPassword
-    });
-    try {
-        await user.save();
-        res.send("Data Stored Successfully");
-    }catch(err) {
-        res.status(400).send("Error Saving User" +err.message);
-    }
-    
-});
-
-app.post("/login", async (req,res) => {
-
-    try{
-
-        const { emailId , password} = req.body;
-
-        const user = await User.findOne({emailId : emailId});
-
-        if(!user){
-            throw new Error("Invalid Credentials");
-        }
-
-        const isPasswordValid = await user.validatePassword(password);
-        if(isPasswordValid){
-
-            const token = await user.getJwt();
-            res.cookie("token", token);
-            res.send('Login Successfull');
-            
-        }
-        else{
-            throw new Error("Invalid Credentials");
-        }
-
-    }
-    catch(err) {
-        res.status(400).send("Error : " +err.message);
-    }
-
-});
-
-app.get("/profile", userAuth, async ( req, res) => {
-    try{
-        const user = req.user;
-       
-        res.send(user);
-    }
-    catch(err) {
-        res.status(400).send("Something Went Wrong : " +err.message);
-    }
-});
-
-app.get("/user", async (req, res) => {
-    const userName = req.body.firstName;
-
-    try{
-       const users =  await User.find({ firstName : userName});
-        if(users.length === 0){
-            res.status(404).send(" User not Found");
-        }
-        else{
-            res.send(users);
-        }
-    }catch(err){
-        res.status(400).send("Something Went Wrong");
-    }
-});
+app.use("/", authRouter);
+app.use("/", profileRouter);
 
 
 
-connectDB().then( () => {
+
+connectDB()
+  .then(() => {
     console.log("Connected to DB");
     app.listen(7777, () => {
-        console.log("Server is started");
+      console.log("Server is started");
     });
-}    
-).catch((err) => {
+  })
+  .catch((err) => {
     console.log(" Error in Db connection");
-});
+  });
 
-
-
-
-
-
-
-
-/// Notes 
+/// Notes
 //Here we are writing the route handlers seperately hence express will go one by one the second route will get called because of next() function.
 // app.get("/user" , (req, res, next) => {
 //     console.log("Route Handler 1");
@@ -121,8 +39,6 @@ connectDB().then( () => {
 //     console.log("Route Handler 1");
 //     res.send(" 2nd Route handler");
 // });
-
-
 
 // app.use("/user", [(req,res,next) => {
 //     console.log("Route Handler 1");
@@ -137,8 +53,6 @@ connectDB().then( () => {
 //     console.log("Route Handler 3");
 //     res.send("Route handler 3");
 // });
-
-
 
 // //This will only handles GET calls to /user
 // app.get("/user", (req,res) =>{
@@ -162,9 +76,7 @@ connectDB().then( () => {
 //     res.send("Hello om Test");
 // });
 
-
-
-// //Middleware 
+// //Middleware
 //const {adminAuth, userAuth} = require("./middlewares/auth");
 // app.use("/admin" , adminAuth );
 
@@ -183,8 +95,6 @@ connectDB().then( () => {
 //     }
 // });
 
-
-
 // app.delete("/delete", async (req, res) =>{
 //     const userId = req.body.userId;
 //     try{
@@ -201,7 +111,7 @@ connectDB().then( () => {
 //     try{
 //         const ALLOWED_UPDATES = ["description", "skills","gender"];
 
-//         const isAllowed_Updates = Object.keys(data).every((k) => 
+//         const isAllowed_Updates = Object.keys(data).every((k) =>
 //             ALLOWED_UPDATES.includes(k)
 //          );
 //         if(!isAllowed_Updates) {
@@ -212,6 +122,5 @@ connectDB().then( () => {
 //     }catch(err) {
 //         res.status(400).send("Update Failed :"+err.message);
 //     }
-    
-// });
 
+// });
