@@ -14,6 +14,9 @@ const userSchema = new mongoose.Schema(
     emailId: {
       type: String,
       required: true,
+      lowerCase : true,
+      unquie : true,
+      trim: true,
       validate(value) {
         if (!validator.isEmail(value)) {
           throw new Error("Email Id is not valid - " + value);
@@ -65,7 +68,6 @@ userSchema.methods.getJwt = async function () {
 userSchema.methods.validatePassword = async function (passwordFromUser) {
   const user = this;
   const passwordHash = user.password;
-
   const isPasswordValid = await bcrypt.compare(passwordFromUser, passwordHash);
 
   return isPasswordValid;
