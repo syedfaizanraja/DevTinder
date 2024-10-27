@@ -7,7 +7,7 @@ const { validateSignUpData } = require("../utils/validate.js");
 
 authRouter.post("/signup", async (req, res) => {
   //Validate the data
-  validateSignUpData(req);
+   validateSignUpData(req);
   const { firstName, lastName, emailId, password } = req.body;
   //Encrypt the password
   const encryptedPassword = await bcrypt.hash(password, 10);
@@ -40,7 +40,7 @@ authRouter.post("/login", async (req, res) => {
     if (isPasswordValid) {
       const token = await user.getJwt();
       res.cookie("token", token);
-      res.json({message: "Login Successful", user});
+      res.json(user);
     } else {
       throw new Error("Invalid Credentials");
     }
@@ -51,7 +51,7 @@ authRouter.post("/login", async (req, res) => {
 
 authRouter.post("/logout", (req, res) => {
   res
-    .cookie("token", null, { expiresIn: new Date(Date.now()) })
+    .cookie("token", null, { expires: new Date(Date.now()) })
     .send("Logout Successfully");
 });
 

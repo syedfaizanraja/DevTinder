@@ -14,7 +14,7 @@ userRouter.get("/user/requests/received" , userAuth, async(req, res) =>{
         const connectionRequest = await ConnectionRequest.find({
             toUserId : loggedInUser._id,
             status: "interested"
-        }).populate("fromUserId", "firstName lastName age gender skills about");
+        }).populate("fromUserId", "firstName lastName age gender skills description photoUrl");
 
         res.json({message : "Data fetched successfully", connectionRequest});
     }
@@ -32,7 +32,7 @@ userRouter.get("/user/connections", userAuth, async ( req, res) =>{
                 {toUserId : loggedInUser._id, status: "accepted"},
                 {fromUserId: loggedInUser._id, status: "accepted"}
             ]
-        }).populate("fromUserId", "firstName lastName age gender skills").populate("toUserId", "firstName lastName age gender skills" );
+        }).populate("fromUserId", "firstName lastName age gender skills  description photoUrl").populate("toUserId", "firstName lastName age gender skills" );
 
         const data = connectionRequest.map( (row) => {
             if(row.fromUserId._id.toString() === loggedInUser._id.toString()){
@@ -54,7 +54,7 @@ userRouter.get("/feed", userAuth, async (req, res) =>{
     try{
         const loggedInUser = req.user;
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        let limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1)* limit;
         limit = limit > 50 ? 50 : limit;
         const connectionRequest = await ConnectionRequest.find({
@@ -77,7 +77,7 @@ userRouter.get("/feed", userAuth, async (req, res) =>{
                 {_id : {$nin : Array.from(hideUserFeed)}},
                 {_id : {$ne : loggedInUser._id}}
             ]
-        }).select("firstName lastName age gender skills").skip(skip).limit(limit);
+        }).select("firstName lastName age gender skills description photoUrl").skip(skip).limit(limit);
 
         res.json({message: "Feed Fetched Succussfully", users});
     
