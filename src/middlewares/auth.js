@@ -9,7 +9,7 @@ const userAuth = async (req, res, next) => {
       return res.status(401).send("Please Login");
     }
 
-    const decodedObj = await jwt.verify(token, "DevTinder@123");
+    const decodedObj = await jwt.verify(token, process.env.SECRET_KEY);
     const { _id } = decodedObj;
 
     const user = await User.findById(_id);

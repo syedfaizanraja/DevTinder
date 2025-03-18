@@ -60,4 +60,13 @@ authRouter.post("/logout", (req, res) => {
     .send("Logout Successfully");
 });
 
+authRouter.get("/auth/google/" , async (req, res) => {
+    try{
+
+    }
+    catch(err){
+      
+    }
+});
+
 module.exports = authRouter;

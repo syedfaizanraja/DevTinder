@@ -46,13 +46,22 @@ const userSchema = new mongoose.Schema(
     skills: {
       type: [String],
     },
+    isPremium : {
+      type: Boolean,
+      default: false,
+    },
+    membershipType : {
+      type: String,
+      enum : ["free", "silver", "gold"],
+      default: "free",
+    }
   },
   { timestamps: true }
 );
 
 userSchema.methods.getJwt = async function () {
   const user = this;
-  const token = await jwt.sign({ _id: user._id }, "DevTinder@123", {
+  const token = await jwt.sign({ _id: user._id }, process.env.SECRET_KEY, {
     expiresIn: "1d",
   });
   return token;

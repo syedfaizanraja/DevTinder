@@ -8,7 +8,9 @@ const profileRouter = require("./routes/profile.js");
 const requestRouter = require("./routes/request.js");
 const userRouter = require("./routes/user.js");
 const cors = require("cors");
+const paymentRouter = require("./routes/payment.js");
 
+require('dotenv').config();
 
 const app = express(); // start the server
 app.use(express.json());
@@ -24,11 +26,12 @@ app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRouter);
 app.use("/", userRouter);
+app.use("/", paymentRouter);
 
 connectDB()
   .then(() => {
     console.log("Connected to DB");
-    app.listen(7777, () => {
+    app.listen(process.env.PORT, () => {
       console.log("Server is started");
     });
   })
