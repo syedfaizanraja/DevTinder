@@ -1,7 +1,7 @@
 const socket = require("socket.io");
 const crypto = require("crypto");
 const Chat = require("../models/chat");
-const { timeStamp } = require("console");
+const { timeStamp, Console } = require("console");
 const ConnectionRequestModel = require("../models/connectionRequest");
 
 
@@ -44,38 +44,38 @@ const initializeSocket = (server) => {
                 // check fromUserID and targetUserID are friends first before sending the message
                 // if they are not friends, don't send the message
 
-                const isFriends = await ConnectionRequestModel.findOne({
-                    $or: [
-                        {fromUser: userId, toUser: targetUserId.targetUserId},
-                        {fromUser: targetUserId.targetUserId, toUser: userId}
-                    ],
-                    status: "accepted"
-                });
+                // const isFriends = await ConnectionRequestModel.findOne({
+                //     $or: [
+                //         {fromUser: userId, toUser: targetUserId.targetUserId},
+                //         {fromUser: targetUserId.targetUserId, toUser: userId}
+                //     ],
+                //     status: "accepted"
+                // });
+                
+                // if(!isFriends){
+                //     return;
+        
+                // }
 
-                if(!isFriends){
-                    return res.status(400).json({message: "You are not friends with this user"});
+                let chat = await Chat.findOne({participants : {$all : [userId, targetUserId.targetUserId]},});
+
+                if(!chat){
+                    chat = new Chat({
+                        participants : [userId, targetUserId.targetUserId],
+                        messages : [],
+                    });
                 }
-
-            let chat = await Chat.findOne({participants : {$all : [userId, targetUserId.targetUserId]},});
-
-            if(!chat){
-                chat = new Chat({
-                    participants : [userId, targetUserId.targetUserId],
-                    messages : [],
+    
+                chat.messages.push({
+                    senderId: userId,
+                    text,
                 });
-            }
-
-            chat.messages.push({
-                senderId: userId,
-                text,
-            });
-
-            await chat.save();
-            const timeStamp = new Date().toISOString();
-            //send the message to the room emit the messageReceived event
-            console.log("timestamp: ", timeStamp);
-            io.to(roomId).emit("messageReceived", {firstName, text, timeStamp });
-
+    
+                await chat.save();
+                const timeStamp = new Date().toISOString();
+                //send the message to the room emit the messageReceived event
+                console.log("timestamp: ", timeStamp);
+                io.to(roomId).emit("messageReceived", {firstName, text, timeStamp });
             }
             catch(err){
                 console.log(err);
