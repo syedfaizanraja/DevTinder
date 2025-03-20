@@ -9,6 +9,12 @@ const requestRouter = require("./routes/request.js");
 const userRouter = require("./routes/user.js");
 const cors = require("cors");
 const paymentRouter = require("./routes/payment.js");
+const http = require("http");
+const initializeSocket = require("./utils/socket.js");
+const chatRouter = require("./routes/chat.js");
+
+
+
 
 require('dotenv').config();
 
@@ -22,16 +28,23 @@ app.use(cors(
   }
 ));
 
+
 app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRouter);
 app.use("/", userRouter);
-app.use("/", paymentRouter);
+//app.use("/", paymentRouter);
+app.use("/", chatRouter);
+
+const server = http.createServer(app);
+
+initializeSocket(server);
+
 
 connectDB()
   .then(() => {
     console.log("Connected to DB");
-    app.listen(process.env.PORT, () => {
+    server.listen(process.env.PORT, () => {
       console.log("Server is started");
     });
   })
